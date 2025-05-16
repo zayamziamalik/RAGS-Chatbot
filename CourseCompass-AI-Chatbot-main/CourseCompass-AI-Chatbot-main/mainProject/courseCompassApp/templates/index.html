@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>TerraByte.</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+    />
+  </head>
+  <style></style>
+  <body>
+    <div class="container d-flex justify-content-center">
+      <div class="card mt-5 w-75 h-75">
+        <div
+          class="d-flex flex-row justify-content-between p-3 adiv text-white"
+        >
+          <i class="fas fa-chevron-left"></i>
+          <h6 class="p-0">TerraByte'S Ai Chatbot</h6>
+          <i class="fas fa-times"></i>
+        </div>
+        <div id="chat-container">
+          <div class="d-flex flex-row p-3">
+            <img src="{% static "assistant.png" %}" width="30" height="30"
+            class="rounded-circle" />
+
+            <div class="chat ml-2 p-3" style="font-size: 15px !important">
+              Hello and thank you for visiting TerraByte. I'm your AI assistant,
+              here to help you navigate through our tech courses and answer any
+              questions you may have. Whether you're looking for information
+              about our programs, need assistance with enrollment, or have any
+              other inquiries, I'm here to assist you. Feel free to ask me
+              anything, and I'll do my best to provide you with the information
+              you need. Let's get started on your journey to mastering
+              technology!
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group px-3">
+          <textarea
+            class="form-control"
+            rows="5"
+            style="font-size: 15px"
+            placeholder="Type your message"
+            id="message-input"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    document
+      .getElementById("message-input")
+      .addEventListener("keypress", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+    function sendMessage() {
+      // Get the text from the textarea
+      const textarea = document.getElementById("message-input");
+      const message = textarea.value;
+      textarea.value = "";
+      var newDiv = document.createElement("div");
+      newDiv.className = "d-flex flex-row ";
+      newDiv.innerHTML = `
+        <div
+            class="response d-flex flex-row p-3"
+            style="margin-left: auto !important"
+            >
+            <div class="bg-white mr-2 p-3">
+              <span class=" " style="font-size: 15px"
+                >${message}</span
+              >
+            </div>
+            <img
+              src="{% static "user.png" %}"
+              width="30"
+              height="30"
+            />
+          </div>
+      `;
+      document.getElementById("chat-container").appendChild(newDiv);
+
+      var responseDiv = document.createElement("div");
+      const responseId = "resp-" + Date.now();
+      responseDiv.innerHTML = `
+        <div class="d-flex flex-row p-3">
+        <img
+          src="{% static "assistant.png" %}"
+          width="30"
+          height="30"
+          class="rounded-circle"
+        />
+        <div class="chat ml-2 p-3">
+          <span class="" id="${responseId}" style="font-size: 15px !important">. . .</span>
+        </div>
+      </div>
+      `;
+
+      document.getElementById("chat-container").appendChild(responseDiv);
+
+      fetch("{% url 'generate_response' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{csrf_token}}",
+        },
+        body: JSON.stringify({ query: message }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("success: ", data);
+          res = document.getElementById(responseId);
+          res.textContent = data["response"];
+        })
+        .catch((error) => {
+          console.log("error: ", error);
+        });
+    }
+  </script>
+</html>
